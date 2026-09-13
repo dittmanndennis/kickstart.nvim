@@ -733,8 +733,15 @@ do
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
-    clangd = {},
-    pyrefly = {},
+    ty = {},
+    clangd = {
+      cmd = {
+        'clangd',
+        '--clang-tidy',           -- Enables clang-tidy checks directly inside LSP
+        '--background-index',     -- Index code in the background for faster autocomplete
+        '--header-insertion=iwyu',-- Automatically insert missing #include directives
+      },
+    },
     -- gopls = {},
     -- pyright = {},
     -- tsc = {},
@@ -805,6 +812,11 @@ do
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
     -- You can add other tools here that you want Mason to install
+    --
+    -- Linters
+    'rumdl',  -- Markdown
+    'ruff',   -- Python
+    'selene', -- Lua
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -827,8 +839,10 @@ do
     format_on_save = function(bufnr)
       -- You can specify filetypes to autoformat on save here:
       local enabled_filetypes = {
-        -- lua = true,
-        -- python = true,
+        lua = true,
+        python = true,
+        cpp = true,
+        c = true,
       }
       if enabled_filetypes[vim.bo[bufnr].filetype] then
         return { timeout_ms = 500 }
@@ -841,6 +855,10 @@ do
     },
     -- You can also specify external formatters in here.
     formatters_by_ft = {
+      lua = { 'stylua' },
+      python = { 'ruff_format' },
+      cpp = { 'clang-format' },
+      c = { 'clang-format' },
       -- rust = { 'rustfmt' },
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },
